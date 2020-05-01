@@ -1,0 +1,5 @@
+*.o
+sandbox
+sandbox.so
+test*
+.vscode/*
