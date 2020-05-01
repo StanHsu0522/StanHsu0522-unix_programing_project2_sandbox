@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
 LINKFLAGS = -ldl
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -pedantic
 LIBCFLAGS = -fPIC $(CFLAGS)
 LIBRARY = sandbox.so
 LAUNCHER = sandbox
