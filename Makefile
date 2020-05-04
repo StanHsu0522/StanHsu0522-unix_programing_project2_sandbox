@@ -1,5 +1,5 @@
 CXX = g++
-LINKFLAGS = -ldl  -D_GLIBCXX_USE_CXX11_ABI=1
+LINKFLAGS = -ldl
 CFLAGS = -Wall -g -pedantic -std=c++11
 LIBCFLAGS = -fPIC $(CFLAGS)
 INC = -I ./include
@@ -8,7 +8,7 @@ LAUNCHER = sandbox
 
 .PHONY: all clean
 
-all: $(LAUNCHER) $(LIBRARY)
+all: $(LIBRARY) $(LAUNCHER)
 
 $(LAUNCHER): main.o
 	$(CXX) -o $@ $< $(LINKFLAGS)

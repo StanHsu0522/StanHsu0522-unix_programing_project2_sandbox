@@ -2,79 +2,123 @@
 
 using namespace std;
 
-string base_dir;
-// int shmid;
-
-// static uid_t (*uni_getuid)(void) = NULL;        // function pointer
+void *handle = NULL;
+static char *base_dir = getenv("BASE_DIR");
+static int (*old_chdir)(const char *path) = NULL;
+static int (*old_chmod)(const char *pathname, mode_t mode) = NULL;
+static int (*old_chown)(const char *pathname, uid_t owner, gid_t group) = NULL;
 static DIR *(*old_opendir)(const char *name) = NULL;
 
 extern "C" {
+void __attribute__((constructor)) contor() {
+    handle = dlopen("libc.so.6", RTLD_LAZY);
+    if (!handle) {
+        fprintf(stderr, "dlopen error\n");
+        exit(EXIT_FAILURE);
+    }
+}
 
-// uid_t getuid(void) {
-//     if(uni_getuid == NULL) {
-//         void *handle = dlopen("libc.so.6", RTLD_LAZY);
-//         if(handle != NULL){
-//             *(void**) (&uni_getuid) = dlsym(handle, "getuid");
-//         }
-//     }
-//     cerr << "injected getuid, always return 0" << endl;
-//     if(uni_getuid != NULL){
-//         cerr << "real uid = " << uni_getuid() << endl;
-//     }
-// }
+int chdir(const char *path) {
+    cout << "xX" << endl;
+    char *error = NULL;
+    if ( !base_dir){
+        cerr << "getenv: environment variable 'BASE_DIR' doesn't exist." << endl;
+        exit(EXIT_FAILURE);
+    }
+    // directory access check
+    if (strncmp(base_dir, path, strlen(path)) != 0) {
+        cerr << "[sandbox] chdir: access to " << path << " is not allowed" << endl;
+        errno = EACCES;     // set errno to "Permission Denied"
+        return -1;
+    }
 
-// __attribute__((constructor))
-// static void init(string base_dir) {
+    // callback
+    if (!old_chdir) {
+        *(void**) (&old_chdir) = dlsym(handle, "chdir");
+        if ((error = dlerror()) != NULL) {
+            cerr << "dlsym: " << error << endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+    return old_chdir(path);
+}
 
-//     cout << "constructor in" << endl;
-//     void *shmaddr = NULL;
-//     key_t key = (key_t) SHM_KEY;
-//     shmid = shmget(key, 1024, 0666 | IPC_CREAT);
-//     if (shmid == -1) {
-//         cerr << "shmget: " << strerror(errno) << endl;
-//         exit(EXIT_FAILURE);
-//     }
-//     shmaddr = shmat(shmid, NULL, 0);
-//     if (shmaddr == (void*)-1) {
-//         cerr << "shmat: " << strerror(errno) << endl;
-//         exit(EXIT_FAILURE);
-//     }
+int chmod(const char *pathname, mode_t mode) {
+    cout << "xX" << endl;
+    char *error = NULL;
+    if ( !base_dir){
+        cerr << "getenv: environment variable 'BASE_DIR' doesn't exist." << endl;
+        exit(EXIT_FAILURE);
+    }
+    // directory access check
+    if (strncmp(base_dir, pathname, strlen(pathname)) != 0) {
+        cerr << "[sandbox] chmod: access to " << pathname << " is not allowed" << endl;
+        errno = EACCES;     // set errno to "Permission Denied"
+        return -1;
+    }
 
-//     base_dir = (char*)shmaddr;
+    // callback
+    if (!old_chmod) {
+        *(void**) (&old_chmod) = dlsym(handle, "chmod");
+        if ((error = dlerror()) != NULL) {
+            cerr << "dlsym: " << error << endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+    return old_chmod(pathname, mode);
+}
 
-//     if (shmdt(shmaddr) == -1) {
-//         cerr << "shmdt: " << strerror(errno) << endl;
-//         exit(EXIT_FAILURE);
-//     }
-// }
+int chown(const char *pathname, uid_t owner, gid_t group) {
+    cout << "xX" << endl;
+    char *error = NULL;
+    if ( !base_dir){
+        cerr << "getenv: environment variable 'BASE_DIR' doesn't exist." << endl;
+        exit(EXIT_FAILURE);
+    }
+    // directory access check
+    if (strncmp(base_dir, pathname, strlen(pathname)) != 0) {
+        cerr << "[sandbox] chown: access to " << pathname << " is not allowed" << endl;
+        errno = EACCES;     // set errno to "Permission Denied"
+        return -1;
+    }
 
-// __attribute__((destructor))
-// static void after(string base_dir) {
-//     if (shmctl(shmid, IPC_RMID, 0) == -1) {
-//         cerr << "shmctl: " << strerror(errno) << endl;
-//         exit(EXIT_FAILURE);
-//     }
-// }
+    // callback
+    if (!old_chown) {
+        *(void**) (&old_chown) = dlsym(handle, "chown");
+        if ((error = dlerror()) != NULL) {
+            cerr << "dlsym: " << error << endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+    return old_chown(pathname, owner, group);
+}
+
 
 DIR *opendir(const char *name) {
-    char* error = NULL;
-    // if (options["basedir"].compare(name) != 0) {
-    //     cerr << "[sandbox] opendir: access to " << name << " is not allowed" << endl;
-    //     return NULL;
-    // }
+    cout << "xX" << endl;
+    char *error = NULL;
+    if ( !base_dir){
+        cerr << "getenv: environment variable 'BASE_DIR' doesn't exist." << endl;
+        exit(EXIT_FAILURE);
+    }
 
-    if (!base_dir.empty())       cout << "basedir: " << base_dir << endl;
+    // directory access check
+    if (strncmp(base_dir, name, strlen(name)) != 0) {
+        cerr << "[sandbox] opendir: access to " << name << " is not allowed" << endl;
+        return NULL;
+    }
 
+    // callback
     if (!old_opendir) {
-        void *handle = dlopen("libc.so.6", RTLD_LAZY);
-        if (handle) {
+        // void *handle = dlopen("libc.so.6", RTLD_LAZY);
+        // if (handle) {
             *(void**) (&old_opendir) = dlsym(handle, "opendir");
             // *(void**) (&old_opendir) = dlsym(RTLD_NEXT, "opendir");
             if ((error = dlerror()) != NULL) {
                 cerr << "dlsym: " << error << endl;
                 exit(EXIT_FAILURE);
             }
-        }
+        // }
     }
     return old_opendir(name);
 }
@@ -86,7 +130,7 @@ int execl(const char *path, const char *arg, ...) {
     return -1;
 }
 
-int execle(const char *path, const char *arg, char * const envp[]) {
+int execle(const char *path, const char *arg, ...) {
     cerr << "[sandbox] execle(" << path << "): ";
     cerr << "not allowed" << endl;
     errno = EACCES;     // set errno to "Permission Denied"

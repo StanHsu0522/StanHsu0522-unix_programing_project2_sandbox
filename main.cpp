@@ -2,7 +2,9 @@
 
 using namespace std;
 
-extern string base_dir;
+// extern string base_dir;
+static int (*exec_func_ptr)(const char *file, char *const argv[]) = NULL;       // function pointer refers to execvp
+
 
 int main(int argc, char* argv[]) {
     vector<char*> command;     // stores command to be executed and also parameters for that command
@@ -20,35 +22,8 @@ int main(int argc, char* argv[]) {
     // cout << endl;
     // cout << "sopath: " << options["sopath"] << "\nbasedir: " << options["basedir"] << endl;
     
-    base_dir = options["base_dir"];
-
-
-    // void *shmaddr = NULL;
-    // int shmid;
-    // key_t key = (key_t) SHM_KEY;
-    // int data_size = 1024;
-    
-    // shmid = shmget(key, data_size, 0666 | IPC_CREAT);
-    // if (shmid == -1) {
-    //     cerr << "shmget: " << strerror(errno) << endl;
-    //     exit(EXIT_FAILURE);
-    // }
-    // shmaddr = shmat(shmid, NULL, 0);
-    // if (shmaddr == (void*)-1) {
-    //     cerr << "shmat: " << strerror(errno) << endl;
-    //     exit(EXIT_FAILURE);
-    // }
-    // memset(shmaddr, 0, data_size);
-    // memcpy(shmaddr, options["basedir"].data(), data_size);
-    // cout << "shm setted: " << (char*)shmaddr << endl;
-    // if (shmdt(shmaddr) == -1) {
-    //     cerr << "shmdt: " << strerror(errno) << endl;
-    //     exit(EXIT_FAILURE);
-    // }
-
-
-    // set LD_PRELOAD to inject librery
-    setenv("LD_PRELOAD", options["sopath"].c_str(), 1);
+    setenv("LD_PRELOAD", options["sopath"].c_str(), 1);     // set LD_PRELOAD to inject librery
+    setenv("BASE_DIR", options["basedir"].c_str(), 1);       // set env. variable BASE_DIR in order to pass parameter to shared library
 
     if ( !execute_cmd(command)) {
         cerr << "no command given." << endl;
@@ -78,6 +53,7 @@ bool execute_cmd(vector<char*> &command) {
         exit(EXIT_FAILURE);
     default:
         waitpid(PID, &status, 0);
+        opendir("/");
         break;
     }
 
