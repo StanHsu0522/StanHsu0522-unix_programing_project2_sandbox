@@ -1,27 +1,12 @@
-#include <iostream>
-#include <dlfcn.h>
-#include <map>
-#include <string>
-#include <cstring>
-#include <vector>
-#include <getopt.h>
-#include <utility>
-#include <sys/wait.h>
-
-#include <unistd.h>
-#include <sys/types.h>
-
-#define DEFAULT_LIBRARY_PATH "./sandbox.so"
-#define DEFAULT_BASE_DIR "."
+#include "main.h"
 
 using namespace std;
 
-bool execute_cmd(vector<char*> &command);
-void parse_opt(int argc, char *argv[], map<string, string> &options, vector<char*> &command);
+extern string base_dir;
 
 int main(int argc, char* argv[]) {
-    map<string, string> options;        // stores options for launcher (i.e. sandbox)
     vector<char*> command;     // stores command to be executed and also parameters for that command
+    map<string, string> options;
 
     // set default parameters
     options["sopath"] = DEFAULT_LIBRARY_PATH;
@@ -35,6 +20,32 @@ int main(int argc, char* argv[]) {
     // cout << endl;
     // cout << "sopath: " << options["sopath"] << "\nbasedir: " << options["basedir"] << endl;
     
+    base_dir = options["base_dir"];
+
+
+    // void *shmaddr = NULL;
+    // int shmid;
+    // key_t key = (key_t) SHM_KEY;
+    // int data_size = 1024;
+    
+    // shmid = shmget(key, data_size, 0666 | IPC_CREAT);
+    // if (shmid == -1) {
+    //     cerr << "shmget: " << strerror(errno) << endl;
+    //     exit(EXIT_FAILURE);
+    // }
+    // shmaddr = shmat(shmid, NULL, 0);
+    // if (shmaddr == (void*)-1) {
+    //     cerr << "shmat: " << strerror(errno) << endl;
+    //     exit(EXIT_FAILURE);
+    // }
+    // memset(shmaddr, 0, data_size);
+    // memcpy(shmaddr, options["basedir"].data(), data_size);
+    // cout << "shm setted: " << (char*)shmaddr << endl;
+    // if (shmdt(shmaddr) == -1) {
+    //     cerr << "shmdt: " << strerror(errno) << endl;
+    //     exit(EXIT_FAILURE);
+    // }
+
 
     // set LD_PRELOAD to inject librery
     setenv("LD_PRELOAD", options["sopath"].c_str(), 1);
