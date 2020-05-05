@@ -3,7 +3,7 @@
 using namespace std;
 
 // extern string base_dir;
-static int (*exec_func_ptr)(const char *file, char *const argv[]) = NULL;       // function pointer refers to execvp
+// static int (*exec_func_ptr)(const char *file, char *const argv[]) = NULL;       // function pointer refers to execvp
 
 
 int main(int argc, char* argv[]) {
