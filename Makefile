@@ -1,6 +1,6 @@
 CXX = g++
 LINKFLAGS = -ldl
-CFLAGS = -Wall -g -pedantic -std=c++11
+CFLAGS = -Wall -g -std=c++11
 LIBCFLAGS = -fPIC $(CFLAGS)
 INC = -I ./include
 LIBRARY = sandbox.so

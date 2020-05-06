@@ -53,7 +53,6 @@ bool execute_cmd(vector<char*> &command) {
         exit(EXIT_FAILURE);
     default:
         waitpid(PID, &status, 0);
-        opendir("/");
         break;
     }
 
