@@ -12,25 +12,12 @@ int main(int argc, char* argv[]) {
 
     // process args
     parse_opt(argc, &argv[0], options, command);
-    // if (command.size() > 1) {
-    //     cout << "command: ";
-    //     for (auto it=command.begin() ; it!=command.end() -1 ; ++it)
-    //         cout << *it << " ";
-    //     cout << "\n";
-    // }
-    // cout << "sopath: " << options["sopath"] << "\nbasedir: " << options["basedir"] << endl;
     
     setenv("LD_PRELOAD", options["sopath"].c_str(), 1);     // set LD_PRELOAD to inject librery
     setenv("BASE_DIR", options["basedir"].c_str(), 1);       // set env. variable BASE_DIR in order to pass parameter to shared library
 
-    if (command.size() - 1 == 0) {
-        cerr << "no command given." << endl;
-        exit(EXIT_FAILURE);
-    }
-    if (execvp(command[0], &command[0]) == -1) {
-        cerr << "Unknown command : [" << command[0] << "]." << endl;
-        exit(EXIT_FAILURE);
-    }
+    if (command.size() - 1 == 0)                    ERROR_OUTPUT(1, "no command given.")
+    if (execvp(command[0], &command[0]) == -1)      ERROR_OUTPUT(3, "Unknown command : [", command[0], "].")
 
     exit(EXIT_SUCCESS);
 }

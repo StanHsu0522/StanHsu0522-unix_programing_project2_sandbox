@@ -18,6 +18,7 @@
 #include <stdarg.h>
 
 #define MAX_PATH_NAME_LENGTH 200
+#define MAX_STRING_SIZE 200
 
 // error message output and exit
 // 'x' is message string number
@@ -73,7 +74,7 @@
     }                                                                                                           \
     if (strncmp(absolute_base_dir, absolute_path, strlen(absolute_base_dir)) != 0) {                            \
         fprintf(stderr, "[sandbox] %s: access to %s is not allowed\n", #func_name, macro_name(__VA_ARGS__));    \
-        errno = 0;                                                                                         \
+        errno = EACCES;                                                                                              \
         return (typeid(int) == typeid(return_type)) ? (return_type)-1 : (return_type)NULL;                      \
     }                                                                                                           \
     void *handle = NULL;                                                                                        \
