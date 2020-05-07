@@ -29,6 +29,7 @@ void parse_opt(int argc, char *argv[], map<string, string> &options, vector<char
                                         // or the text of the following argv-element, in optarg.
                                         // Two colons for optional arg (e.g. -oarg).
     int c ;
+    bool has_args = false;
     struct option opts[] = {
         {0, 0, 0, 0}
     };
@@ -40,23 +41,22 @@ void parse_opt(int argc, char *argv[], map<string, string> &options, vector<char
         switch (c)
         {
         case 'p':
+            has_args = true;
             options["sopath"] = optarg;
             break;
         case 'd':
+            has_args = true;
             options["basedir"] = optarg;
             break;
         default:        // '?', 'h'
-            cerr << "Usage: " << argv[0] << " [-p sopath] [-d basedir] [--] cmd [cmd args ...]\n";
-            cerr << "\t-p: set the path to sandbox.so, default = ./sandbox.so\n"
-                 << "\t-d: the base directory that is allowed to access, default = .\n"
-                 << "\t--: separate the arguments for sandbox and for the executed command" << endl;
-            exit(EXIT_FAILURE);
+            ARG_ERROR
         }
     }
 
     // have more args?
     // optind is the index of the next element to be processed in argv[].
-    while (argc > optind){
+    for (int i=0 ; argc > optind ; i++){
+        if (i==1 && !has_args)           { ARG_ERROR }
         command.push_back(argv[optind++]);
     }
     command.push_back(NULL);        // execvp expects NULL as the last element

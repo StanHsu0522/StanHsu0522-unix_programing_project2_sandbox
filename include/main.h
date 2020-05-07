@@ -26,6 +26,12 @@
 #define ERROR_OUTPUT1(m1)           \
     fprintf(stderr, "%s\n", m1);    \
     exit(EXIT_FAILURE);
+#define ARG_ERROR                                                                                   \
+    cerr << "Usage: " << argv[0] << " [-p sopath] [-d basedir] [--] cmd [cmd args ...]\n";          \
+    cerr << "\t-p: set the path to sandbox.so, default = ./sandbox.so\n"                            \
+            << "\t-d: the base directory that is allowed to access, default = .\n"                  \
+            << "\t--: separate the arguments for sandbox and for the executed command" << endl;     \
+    exit(EXIT_FAILURE);
 
 void parse_opt(int argc, char *argv[], std::map<std::string, std::string> &options, std::vector<char*> &command);
 
