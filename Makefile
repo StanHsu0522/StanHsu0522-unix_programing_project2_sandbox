@@ -11,7 +11,7 @@ LAUNCHER = sandbox
 all: $(LIBRARY) $(LAUNCHER)
 
 $(LAUNCHER): main.o
-	$(CXX) -o $@ $< $(LINKFLAGS)
+	$(CXX) -o $@ $< 
 
 $(LIBRARY): sandbox.o
 	$(CXX) -shared -o $@ $< $(LINKFLAGS)

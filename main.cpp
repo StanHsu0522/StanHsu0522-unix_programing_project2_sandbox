@@ -2,10 +2,6 @@
 
 using namespace std;
 
-// extern string base_dir;
-// static int (*exec_func_ptr)(const char *file, char *const argv[]) = NULL;       // function pointer refers to execvp
-
-
 int main(int argc, char* argv[]) {
     vector<char*> command;     // stores command to be executed and also parameters for that command
     map<string, string> options;
@@ -16,47 +12,27 @@ int main(int argc, char* argv[]) {
 
     // process args
     parse_opt(argc, &argv[0], options, command);
-    // cout << "command: ";
-    // for (auto it=command.begin() ; it!=command.end() ; ++it)
-    //     cout << *it << " ";
-    // cout << endl;
+    // if (command.size() > 1) {
+    //     cout << "command: ";
+    //     for (auto it=command.begin() ; it!=command.end() -1 ; ++it)
+    //         cout << *it << " ";
+    //     cout << "\n";
+    // }
     // cout << "sopath: " << options["sopath"] << "\nbasedir: " << options["basedir"] << endl;
     
     setenv("LD_PRELOAD", options["sopath"].c_str(), 1);     // set LD_PRELOAD to inject librery
     setenv("BASE_DIR", options["basedir"].c_str(), 1);       // set env. variable BASE_DIR in order to pass parameter to shared library
 
-    if ( !execute_cmd(command)) {
+    if (command.size() - 1 == 0) {
         cerr << "no command given." << endl;
+        exit(EXIT_FAILURE);
+    }
+    if (execvp(command[0], &command[0]) == -1) {
+        cerr << "Unknown command : [" << command[0] << "]." << endl;
         exit(EXIT_FAILURE);
     }
 
     exit(EXIT_SUCCESS);
-}
-
-bool execute_cmd(vector<char*> &command) {
-    if (command.size() == 0)     return false;
-
-    pid_t PID;
-    int status;
-
-    PID = fork();
-    switch (PID)
-    {
-    case 0:
-        if (execvp(command[0], &command[0]) == -1) {
-            cerr << "Unknown command : [" << command[0] << "]." << endl;
-            exit(EXIT_FAILURE);
-        }
-        break;
-    case -1:
-        cerr << "fork: " << strerror(errno) << endl;
-        exit(EXIT_FAILURE);
-    default:
-        waitpid(PID, &status, 0);
-        break;
-    }
-
-    return true;
 }
 
 void parse_opt(int argc, char *argv[], map<string, string> &options, vector<char*> &command) {
