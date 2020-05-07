@@ -54,6 +54,11 @@ Use Makefile.
 
 ## Usage
 
+./sandbox [-p sopath] [-d basedir] [--] cmd [cmd args ...]
+    -p: set the path to sandbox.so, default = ./sandbox.so
+	-d: the base directory that is allowed to access, default = .
+	--: separate the arguments for sandbox and for the executed command
+    
 ```bash
     ## examples
     ./sandbox ls
