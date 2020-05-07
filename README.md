@@ -1,4 +1,6 @@
-# unix_programming_project2_snadbox
+# Play in a Sandbox?!
+
+###  library injection and API hijacking
 
 Sandbox using c++ for moitoring execution of shell commands.
 
@@ -38,12 +40,13 @@ Sandbox using c++ for moitoring execution of shell commands.
 Inject the shared library (e.g. sandbox.so) into a process.
 
 ```bash
+    LD_PRELOAD={ABSOLUTE_PATH_TO_LIB} {COMMAND}
     LD_PRELOAD=./sandbox.so ./sandbox ls
 ```
 
 ## Installation
 
-Use Makefile
+Use Makefile.
 
 ```bash
     make
@@ -52,6 +55,7 @@ Use Makefile
 ## Usage
 
 ```bash
+    ## examples
     ./sandbox ls
     ./sandbox -d / -- ls -al
     ./sandbox mkdir ~/aaa
