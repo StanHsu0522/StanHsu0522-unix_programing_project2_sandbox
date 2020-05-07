@@ -13,7 +13,7 @@ ssize_t readlink(const char *path, char *buf, size_t bufsiz)            { FUNC_C
 int remove(const char *pathname)                                        { FUNC_CALL(1, remove, int,__FC_FIRST_ARG, const char *, pathname) }
 int rename(const char *oldpath, const char *newpath)                    { FUNC_CALL(2, rename, int,__FC_FIRST_ARG, const char *, oldpath, const char *, newpath) }
 int rmdir(const char *pathname)                                         { FUNC_CALL(1, rmdir, int,__FC_FIRST_ARG, const char *, pathname) }
-int __xstat(int ver, const char * path, struct stat * stat_buf)         { FUNC_CALL(3, __xstat, int,__FC_SECOND_ARG, int, ver, const char *, path, struct stat *, stat_buf) }
+// int __xstat(int ver, const char * path, struct stat * stat_buf)         { FUNC_CALL(3, __xstat, int,__FC_SECOND_ARG, int, ver, const char *, path, struct stat *, stat_buf) }
 int symlink(const char *target, const char *linkpath)                   { FUNC_CALL(2, symlink, int,__FC_FIRST_ARG, const char *, target, const char *, linkpath) }
 int unlink(const char *pathname)                                        { FUNC_CALL(1, unlink, int,__FC_FIRST_ARG, const char *, pathname) }
 DIR *opendir(const char *name)                                          { FUNC_CALL(1, opendir, DIR*,__FC_FIRST_ARG, const char*, name) }
@@ -27,10 +27,53 @@ int execve(const char *pathname, char *const argv[],
 int execvp(const char *file, char *const argv[])            { FORBIDDEN_FUNC_CALL("execvp", file) }
 int system(const char *command)                             { FORBIDDEN_FUNC_CALL("system", command) }
 
+
+int __xstat(int ver, const char * path, struct stat * stat_buf) {
+    printf("***__xstat has been injected***\n");
+    size_t r_len;
+    char *env;
+    char base_dir[MAX_PATH_NAME_LENGTH];
+    char relative_path[MAX_PATH_NAME_LENGTH];
+    char absolute_base_dir[MAX_PATH_NAME_LENGTH];
+    char absolute_path[MAX_PATH_NAME_LENGTH];
+    int (*old_open)(int ver, const char * path, struct stat * stat_buf) = NULL;      // function pointer declaration
+
+    if ((env = getenv("BASE_DIR")) == NULL)                 ERROR_OUTPUT(1, "getenv: environment variable BASE_DIR doesn't exist.")
+    else                                                    strcpy(base_dir, env);
+    if (realpath(base_dir, absolute_base_dir) == NULL)      ERROR_OUTPUT(1, "realpath error")
+    
+    // resolve relative path into absolute path
+    r_len = strlen(path);
+    memset(relative_path, 0, MAX_PATH_NAME_LENGTH);
+    strncpy(relative_path, path, r_len);
+    if (realpath(relative_path, absolute_path) == NULL)     ERROR_OUTPUT(2, "realpath error: path: ", relative_path)
+
+    fprintf(stderr, "path: %s\n", path);
+    // access directory check
+    if (strncmp(absolute_base_dir, absolute_path, strlen(absolute_base_dir)) != 0) {
+        fprintf(stderr, "[sandbox] %s: access to %s is not allowed\n", "fopen", path);
+        errno = 0;
+        return -1;
+    }
+
+    // callback
+    void *handle = NULL;
+    handle = dlopen("libc.so.6", RTLD_LAZY);
+    if (!handle)        ERROR_OUTPUT(2, "dlopen: ", dlerror())
+    if (!old_open) {
+        *(void**) (&old_open) = dlsym(handle, "__xstat");
+        if (!old_open)     ERROR_OUTPUT(2, "dlsym: ", dlerror())
+    }
+    dlclose(handle);
+
+    return old_open(ver, path, stat_buf);
+}
+
+
 // special case
 // open, openat
 int open(const char *pathname, int flags, ...) {
-    // printf("***open has been injected***\n");
+    printf("***open has been injected***\n");
     size_t r_len;
     char *env;
     char base_dir[MAX_PATH_NAME_LENGTH];
@@ -63,6 +106,7 @@ int open(const char *pathname, int flags, ...) {
     // access directory check
     if (strncmp(absolute_base_dir, absolute_path, strlen(absolute_base_dir)) != 0) {
         fprintf(stderr, "[sandbox] %s: access to %s is not allowed\n", "fopen", pathname);
+        errno = 0;
         return -1;
     }
 
@@ -72,6 +116,7 @@ int open(const char *pathname, int flags, ...) {
     va_list vl;
     va_start(vl, flags);
     mode = va_arg(vl, mode_t);
+    fprintf (stderr, "mode: %d\n", mode);
     va_end(vl);
 
     // callback
@@ -88,7 +133,7 @@ int open(const char *pathname, int flags, ...) {
 }
 
 int openat(int dirfd, const char *pathname, int flags, ...) {
-    // printf("***openat has been injected***\n");
+    printf("***openat has been injected***\n");
     size_t r_len;
     char *env;
     char base_dir[MAX_PATH_NAME_LENGTH];
@@ -116,6 +161,7 @@ int openat(int dirfd, const char *pathname, int flags, ...) {
     // access directory check
     if (strncmp(absolute_base_dir, absolute_path, strlen(absolute_base_dir)) != 0) {
         fprintf(stderr, "[sandbox] %s: access to %s is not allowed\n", "fopen", pathname);
+        errno = 0;
         return -1;
     }
 

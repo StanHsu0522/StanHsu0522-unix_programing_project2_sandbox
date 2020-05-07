@@ -44,7 +44,7 @@
 #define __FC_EVERY_ARGS5(t5, a5, ...) a5, __FC_EVERY_ARGS4(__VA_ARGS__)
 #define __FC_EVERY_ARGS6(t6, a6, ...) a6, __FC_EVERY_ARGS5(__VA_ARGS__)
 
-    // printf("***%s has been injected***\n", #func_name);
+    // printf("***%s has been injected***\n", #func_name); 
 #define FUNC_CALL(x, func_name, return_type, macro_name, ...)                                                   \
     size_t r_len;                                                                                               \
     char *env;                                                                                                  \
@@ -73,6 +73,7 @@
     }                                                                                                           \
     if (strncmp(absolute_base_dir, absolute_path, strlen(absolute_base_dir)) != 0) {                            \
         fprintf(stderr, "[sandbox] %s: access to %s is not allowed\n", #func_name, macro_name(__VA_ARGS__));    \
+        errno = 0;                                                                                         \
         return (typeid(int) == typeid(return_type)) ? (return_type)-1 : (return_type)NULL;                      \
     }                                                                                                           \
     void *handle = NULL;                                                                                        \
@@ -86,8 +87,8 @@
     return old_##func_name(__FC_EVERY_ARGS##x(__VA_ARGS__));
 
 #define FORBIDDEN_FUNC_CALL(func_name, message)             \
-    fprintf(stderr, "[sandbox] %s", #func_name);            \
-    fprintf(stderr, "(%s): net allowed\n", #message);       \
+    fprintf(stderr, "[sandbox] %s", func_name);             \
+    fprintf(stderr, "(%s): not allowed\n", message);        \
     errno = EACCES;                                         \
     return -1;
 
