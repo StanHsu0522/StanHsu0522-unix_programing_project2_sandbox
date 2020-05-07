@@ -53,11 +53,14 @@ void parse_opt(int argc, char *argv[], map<string, string> &options, vector<char
         }
     }
 
+    c = optind - 1;      // locate "--"
+
     // have more args?
     // optind is the index of the next element to be processed in argv[].
     for (int i=0 ; argc > optind ; i++){
-        if (i==1 && !has_args)           { ARG_ERROR }
         command.push_back(argv[optind++]);
     }
     command.push_back(NULL);        // execvp expects NULL as the last element
+
+    if (!has_args && (strncmp(argv[c], "--", 2)!=0) && ((command.size()-2) !=0))        { ARG_ERROR }
 }
